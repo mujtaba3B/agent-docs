@@ -1,4 +1,4 @@
-# agent-docs — project schema (Claude instructions)
+# agent-docs - project schema (Claude instructions)
 
 Schema for the `agent-docs` repo. Applies to every Claude Code session under `/Users/mujtaba/dev/agent-docs/`. Follows the cross-project schema at `/Users/mujtaba/dev/CLAUDE.md`.
 

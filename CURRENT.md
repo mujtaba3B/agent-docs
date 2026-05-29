@@ -1,4 +1,4 @@
-# CURRENT.md — what agent files should contain (2026-Q2)
+# CURRENT.md - what agent files should contain (2026-Q2)
 
 Mujtaba's working synthesis of how to author and organize the markdown files AI coding agents read every session: `CLAUDE.md`, `AGENTS.md`, `.claude/rules/`, `.cursor/rules/`, and the rest. Built from the upstream sources cached in `sources/` plus reconciliation across vendors.
 
@@ -27,7 +27,7 @@ The most actionable rules, ranked by impact for this user's Claude-first, multi-
 
 ## Per-vendor reference
 
-### Anthropic — Claude Code (`CLAUDE.md`, `.claude/rules/`, auto memory)
+### Anthropic - Claude Code (`CLAUDE.md`, `.claude/rules/`, auto memory)
 
 Full snapshot: `sources/anthropic-claude-code-memory-2026-05-29.md`.
 
@@ -41,7 +41,7 @@ Full snapshot: `sources/anthropic-claude-code-memory-2026-05-29.md`.
 - **Enforcement** lives in hooks and managed settings (`permissions.deny`, `sandbox`, etc.), not CLAUDE.md.
 - **Debug**: `/memory` (what's loaded), `InstructionsLoaded` hook (log loads), `--append-system-prompt` (system-level), `claudeMdExcludes` (skip ancestor files in monorepos). Project-root CLAUDE.md survives `/compact`; nested ones reload on next read.
 
-### agents.md — the open cross-vendor format
+### agents.md - the open cross-vendor format
 
 Full snapshot: `sources/agents-md-spec-2026-05-29.md`.
 
@@ -50,7 +50,7 @@ Full snapshot: `sources/agents-md-spec-2026-05-29.md`.
 - Nested AGENTS.md per subproject; nearest file wins; explicit chat prompts override everything.
 - Now stewarded by the Agentic AI Foundation under the Linux Foundation.
 
-### Cursor — `.cursor/rules/*.mdc`
+### Cursor - `.cursor/rules/*.mdc`
 
 Full snapshot: `sources/cursor-rules-2026-05-29.md`.
 
@@ -59,7 +59,7 @@ Full snapshot: `sources/cursor-rules-2026-05-29.md`.
 - Best practice: under 500 lines, split large rules, reference files instead of copying, write like internal docs. "Add rules only when you notice the Agent making the same mistake repeatedly."
 - Precedence: Team → Project → User (earlier wins on conflict). Remote rules importable from GitHub.
 
-### OpenAI Codex — `AGENTS.md` + `AGENTS.override.md`
+### OpenAI Codex - `AGENTS.md` + `AGENTS.override.md`
 
 Full snapshot: `sources/openai-codex-agents-md-2026-05-29.md`.
 
@@ -68,7 +68,7 @@ Full snapshot: `sources/openai-codex-agents-md-2026-05-29.md`.
 - `AGENTS.override.md` shadows a sibling `AGENTS.md`. `project_doc_fallback_filenames` lets other filenames count. `CODEX_HOME` selects a profile.
 - Verify with `codex --ask-for-approval never "Summarize the current instructions."`; audit loads in `~/.codex/log/`.
 
-### GitHub Copilot — `.github/copilot-instructions.md` + `AGENTS.md`/`CLAUDE.md`
+### GitHub Copilot - `.github/copilot-instructions.md` + `AGENTS.md`/`CLAUDE.md`
 
 Full snapshot: `sources/github-copilot-custom-instructions-2026-05-29.md`.
 
@@ -78,7 +78,7 @@ Full snapshot: `sources/github-copilot-custom-instructions-2026-05-29.md`.
 
 ---
 
-## Synthesis — cross-vendor reconciliation (Mujtaba's opinions)
+## Synthesis - cross-vendor reconciliation (Mujtaba's opinions)
 
 ### The pattern every vendor converged on
 

@@ -2,7 +2,7 @@
 
 Why each revision of `CURRENT.md` (and the repo) happened. Newest first.
 
-## 2026-05-29 — Founded
+## 2026-05-29 - Founded
 
 Founded after an sms-hero session in which `/agent-files-architect --research` re-ran upstream research (Anthropic, agents.md, Cursor) and produced findings that had nowhere durable to live. Standing up this repo so the synthesis is consulted once, not re-derived per project.
 

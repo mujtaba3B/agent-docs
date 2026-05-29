@@ -1,4 +1,4 @@
-# LOG — agent-docs
+# LOG - agent-docs
 
 Chronological decision log. Why things were decided, not every commit. Date-headed sections; entries tagged `[topic][subtopic]`. Companion to `INDEX.md` (where things live) and `CHANGELOG.md` (why each `CURRENT.md` revision happened).
 

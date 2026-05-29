@@ -1,4 +1,4 @@
-# INDEX — agent-docs
+# INDEX - agent-docs
 
 Where to find things in this repo. Companion to `LOG.md` (chronological) and `CHANGELOG.md` (why each `CURRENT.md` revision happened).
 
