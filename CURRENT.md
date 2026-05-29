@@ -20,7 +20,7 @@ The most actionable rules, ranked by impact for this user's Claude-first, multi-
 6. **Multi-step procedures belong in skills, not CLAUDE.md.** If an entry is a procedure or only matters for part of the tree, it is a skill or a path-scoped rule, not an always-loaded instruction.
 7. **Avoid contradictions across the CLAUDE.md stack** (user / workspace / project). On conflict Claude may pick either. Keep lower tiers as pointer-up references or layer-specific applications, not restatements that can drift.
 8. **Use `<!-- ... -->` HTML comments for human-only notes.** Anthropic strips block-level HTML comments before injection, so maintainer notes cost zero session tokens but stay visible when you open the file.
-9. **One root `CLAUDE.md` can serve Claude + Copilot + Codex.** GitHub Copilot's coding agent and OpenAI Codex both honor a root `AGENTS.md`/`CLAUDE.md`. If a second agent ever enters the workflow, a root `AGENTS.md` with `@AGENTS.md` imported from `CLAUDE.md` is the convergence pattern. Not needed while Claude-only.
+9. **`AGENTS.md` is the cross-agent common denominator, not `CLAUDE.md`.** GitHub Copilot's coding agent honors a root `AGENTS.md` or `CLAUDE.md`; OpenAI Codex honors `AGENTS.md` (and `AGENTS.override.md`) but NOT `CLAUDE.md` by default (only if you add it to `project_doc_fallback_filenames`). So if a second agent ever enters the workflow, add a root `AGENTS.md` and `@AGENTS.md`-import it from that repo's `CLAUDE.md`. Do not rely on Codex reading `CLAUDE.md`. Not needed while Claude-only.
 10. **LOG.md / INDEX.md are not loaded at session start.** They are read on demand. So their size is not a per-session context cost; do not over-trim them for token reasons (trim them for findability).
 
 ---
@@ -105,7 +105,7 @@ Takeaways that hold across all of them:
    - Pencil design-tool default → `paths: '**/*.{pen,figma,tldraw}'`-scoped; it only matters for design work.
    This preserves behavior for the always-on rules and reclaims session context for the path-scoped ones. **Do not let a clone or sidequest apply this automatically; it is the main session's call.**
 2. **Adopt `<!-- ... -->` for the maintainer notes** currently sitting as visible prose in CLAUDE.md files. Zero session cost, still visible on Read.
-3. **Stay Claude-only for now; don't pre-build AGENTS.md.** It is lock-in risk tracking, not a today problem. The moment a second agent (Cursor, Codex, Copilot coding agent) enters a repo, add a root `AGENTS.md` and `@AGENTS.md` from that repo's `CLAUDE.md`. Because Copilot and Codex both honor a root `CLAUDE.md`, even that is optional until a vendor that needs AGENTS.md specifically shows up.
+3. **Stay Claude-only for now; don't pre-build AGENTS.md.** It is lock-in risk tracking, not a today problem. The moment a second agent (Cursor, Codex, Copilot coding agent) enters a repo, add a root `AGENTS.md` and `@AGENTS.md` it from that repo's `CLAUDE.md`. Note the asymmetry: Copilot will read a root `CLAUDE.md`, but Codex will not by default (it reads `AGENTS.md`, or `CLAUDE.md` only via `project_doc_fallback_filenames`). So `AGENTS.md` is the file to add, not just a `CLAUDE.md`.
 4. **The three-tier CLAUDE.md hierarchy is healthy** (user → workspace `~/dev/` → project). The last precedence audit found zero contradictions; keep lower tiers as pointer-up references, not restatements.
 5. **Don't trim LOG.md / INDEX.md for token reasons.** They are not loaded at session start. Trim them only for human/agent findability.
 
