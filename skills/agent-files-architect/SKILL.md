@@ -40,7 +40,7 @@ The menu is a single-select. `AskUserQuestion` caps options at 4, so the menu of
 |---|---|---|
 | Standard audit (recommended) | Up-walk only. Precedence graph, stale pointers, size report, three-file gap, INDEX link check. Fast. | (none) |
 | Standard + tier-discipline | Adds a qualitative pass over each CLAUDE.md section: per-section evidence features plus one batched LLM judgment call that flags decorative content, inline procedures that should be skills, and sections duplicating skill content. Advisory only. | `--tier-discipline` |
-| Standard + research drift | Adds an upstream-guidance fetch (Anthropic memory docs, Codex AGENTS.md, Cursor rules, agents.md) via `/browse` and surfaces drift. | `--research` |
+| Standard + research drift | Compares the user's files against the cached `agent-docs` guidance (`CURRENT.md` + `sources/`), re-fetching upstream via `/browse` only when a snapshot is stale or missing, and surfaces drift. | `--research` |
 | Standard + expert panel | Adds a `/second-opinion panel` review of the audit output. | `--review` |
 
 `--deep` is intentionally not in the menu; power users invoke it directly. Its blast radius (downward walk into `~/dev/`) is large enough that a cold-invocation menu nudge would be the wrong default.
@@ -298,22 +298,35 @@ No per-patch confirmation. The bundle is the unit.
 
 Skip silently when not invoked with `--research`.
 
-Sources (fetch via `/browse` from gstack, not `WebFetch` or `WebSearch`; this is a global rule in `~/.claude/CLAUDE.md`):
+**Read the local `agent-docs` cache first; only fetch live when it is missing or stale.** This skill lives inside the `agent-docs` repo, which already holds a synthesized `CURRENT.md` plus date-stamped upstream snapshots under `sources/`. Use them as the baseline so the common case costs zero web fetches.
+
+Resolve the `agent-docs` root robustly (works on any machine regardless of where it is cloned):
+
+1. `resolve ~/.claude/skills/agent-files-architect` to its real path, then walk up two directories (`skills/agent-files-architect/` → repo root). That is the `agent-docs` root.
+2. Fallback if the symlink resolution fails: `~/dev/agent-docs`.
+
+Then:
+
+- Read `<agent-docs>/CURRENT.md` (the synthesis) and the relevant `<agent-docs>/sources/*.md` snapshots. Compare the user's actual files against that guidance. This is the baseline drift scan and needs no network.
+- **Freshness check.** Each `sources/` file is named `<vendor>-<topic>-YYYY-MM-DD.md`. If the newest snapshot date is more than ~90 days old (or a vendor is missing entirely), do a live re-fetch of just those sources via `/browse` and note the staleness in the report. Otherwise trust the cache.
+- If the `agent-docs` cache cannot be found at all (skill installed standalone, repo not cloned on this machine), fall back to a full live fetch of every source below and say so in the report.
+
+Sources (fetch via `/browse` from gstack, not `WebFetch` or `WebSearch`; this is a global rule in `~/.claude/CLAUDE.md`). URLs of record, kept in sync with `<agent-docs>/sources/`:
 
 - Karpathy gists: piggyback on `~/.claude/karpathy-seen.json`. Read the snapshot. If a gist has been updated since the agent-files-architect last run, include it.
-- Anthropic Claude Code memory + settings docs: https://docs.anthropic.com/en/docs/claude-code/memory
-- OpenAI Codex AGENTS.md guidance: https://developers.openai.com/codex
-- Cursor rules docs: https://docs.cursor.com/context/rules
-- GitHub Copilot custom instructions: https://docs.github.com/en/copilot
+- Anthropic Claude Code memory docs: https://code.claude.com/docs/en/memory
+- OpenAI Codex AGENTS.md guidance: https://developers.openai.com/codex/guides/agents-md
+- Cursor rules docs: https://cursor.com/docs/context/rules
+- GitHub Copilot custom instructions: https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions
 - Community spec: https://agents.md/
 
-For each source, summarize the page in 2 to 4 bullets and compare against the user's actual files. Each finding cites:
+For each source, summarize in 2 to 4 bullets (from the cached snapshot, or the live page if re-fetched) and compare against the user's actual files. Each finding cites:
 
 - Source URL.
 - The user file that drifts from the upstream guidance.
 - One-line "what changed" and "why this matters".
 
-Append to `research.md` and link from `report.md`.
+Append to `research.md` and link from `report.md`. **If you re-fetched any source live, also refresh the matching `<agent-docs>/sources/<vendor>-<topic>-YYYY-MM-DD.md` snapshot and `CURRENT.md` so the cache stays current** (this is the maintenance loop that keeps the baseline cheap).
 
 ---
 

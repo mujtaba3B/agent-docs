@@ -19,6 +19,7 @@ Private repo. Local folder `~/dev/agent-docs/`; GitHub `mujtaba3B/agent-docs`.
   skills/agent-files-architect/SKILL.md   the audit skill
   CHANGELOG.md   why each CURRENT.md revision happened
   README.md      public-facing intro
+  install.sh     symlinks skills/* into ~/.claude/skills/
   CLAUDE.md LOG.md INDEX.md   the ~/dev/ three-file schema
 ```
 

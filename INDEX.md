@@ -28,7 +28,8 @@ All under `sources/` (see `sources/README.md` for the inventory + refresh cadenc
 
 | Skill | Path | What |
 |---|---|---|
-| agent-files-architect | `skills/agent-files-architect/SKILL.md` | Audits and selectively improves a real CLAUDE.md / AGENTS.md / LOG.md / INDEX.md / MEMORY.md tree against the guidance in `CURRENT.md`. Symlinked into `~/.claude/skills/agent-files-architect`. Relocated here from `mutwo-skills` on 2026-05-29 (public to private). |
+| agent-files-architect | `skills/agent-files-architect/SKILL.md` | Audits and selectively improves a real CLAUDE.md / AGENTS.md / LOG.md / INDEX.md / MEMORY.md tree against the guidance in `CURRENT.md`. Its `--research` mode reads `CURRENT.md` + `sources/` first (resolved relative to its own symlink), re-fetching upstream only when stale. Symlinked into `~/.claude/skills/agent-files-architect`. Relocated here from `mutwo-skills` on 2026-05-29 (public to private). |
+| install.sh | `install.sh` | Symlinks `skills/*` into `~/.claude/skills/`; prunes stale links into this repo. Run after cloning on a new machine (e.g. the Mac mini for nanoclaw). |
 
 ## External references
 
