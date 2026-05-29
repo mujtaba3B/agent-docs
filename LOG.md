@@ -16,6 +16,14 @@ Fetched fresh snapshots of Anthropic Claude Code memory docs, agents.md, Cursor 
 
 Wrote `CURRENT.md` with a ranked "if you only read one page" section, per-vendor reference, and a cross-vendor reconciliation with opinions. Top recommendation baked in: Anthropic's <200-line CLAUDE.md target vs `~/.claude/CLAUDE.md` at ~400 lines / ~3,940 tokens; documented fix is `~/.claude/rules/<topic>.md` (none exist yet). The slim refactor itself is deliberately deferred to the main session, not applied from this sidequest.
 
+### `[skill][install]` Added install.sh + wired --research to the local cache
+
+Gave the repo an `install.sh` (symlinks `skills/*` into `~/.claude/skills/`, replaces a pre-existing real dir before linking, prunes stale links). Wired the skill's `--research` Step 7 to read `CURRENT.md` + `sources/` first (resolved relative to its own symlink, so it works wherever agent-docs is cloned) and only re-fetch upstream via `/browse` when a snapshot is stale (>~90d) or missing. Refreshed the source-of-record URLs to the current canonical pages. Co-location is now functional, not just physical.
+
+### `[ops][mini]` Migrated the nanoclaw (Mac mini) install
+
+The mini ran nanoclaw with `~/.claude/skills/agent-files-architect` symlinked from its mutwo-skills clone (`~/dev/mutwo/skills/`). Cloned the private `agent-docs` on the mini and ran its `install.sh`, re-pointing the symlink to `~/dev/agent-docs/skills/agent-files-architect`. The mini's gh is authed as `mujtaba3B` (repo scope), so the private clone worked. The symlink now points outside the mutwo-skills repo, so when the mini later pulls mutwo-skills PR #31 the prune loop leaves it alone. The mini's agent-docs clone is temporarily on `feat/founding-scaffold`; finalize with `git checkout main && git pull` once PR #1 merges.
+
 ### `[skill][relocate]` Moved agent-files-architect into this repo
 
 `git mv` of `skills/agent-files-architect/` out of the public `mutwo-skills` repo into `agent-docs/skills/`. Re-pointed `~/.claude/skills/agent-files-architect` to the new location. Removal from `mutwo-skills` goes via a separate PR (its `main` is branch-protected). This deliberately flips the skill from public to private; agent-docs is now both the reference data and the skill's home.
