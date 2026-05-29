@@ -22,7 +22,16 @@ for skill in "$REPO"/skills/*/; do
   [[ -f "$skill/SKILL.md" ]] || continue
   name="$(basename "$skill")"
   link="$TARGET/$name"
-  ln -sfn "$skill" "$link"
+  # Replace whatever is there first. `ln -sfn` into an existing real directory
+  # would nest the link inside it (leaving a previously-copied skill active),
+  # which is exactly the copy-to-symlink case this installer must handle.
+  if [[ -d "$link" && ! -L "$link" ]]; then
+    rm -rf "$link"
+    echo "  replaced existing directory: $name"
+  elif [[ -L "$link" || -e "$link" ]]; then
+    rm -f "$link"
+  fi
+  ln -s "$skill" "$link"
   echo "  linked: $name -> $skill"
 done
 
