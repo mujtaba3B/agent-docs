@@ -12,7 +12,7 @@ Private repo. Local folder `~/dev/agent-docs/`; GitHub `mujtaba3B/agent-docs`.
 
 ## Repo layout
 
-```
+```text
 ~/dev/agent-docs/
   CURRENT.md     the synthesis (read this first)
   sources/       date-stamped upstream snapshots + refresh note

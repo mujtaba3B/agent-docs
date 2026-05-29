@@ -57,7 +57,7 @@ CLAUDE.md can import additional files with `@path/to/import`. Imported files exp
 
 Claude Code reads `CLAUDE.md`, NOT `AGENTS.md`. If your repo already uses AGENTS.md, create a CLAUDE.md that imports it so both tools read the same instructions:
 
-```
+```text
 CLAUDE.md
 @AGENTS.md
 

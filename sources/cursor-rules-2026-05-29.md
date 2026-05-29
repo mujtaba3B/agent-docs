@@ -41,7 +41,7 @@ Frontmatter field interaction:
 
 Example (always applied):
 
-```
+```text
 ---
 alwaysApply: true
 ---
@@ -51,7 +51,7 @@ alwaysApply: true
 
 Example (auto-attached by file pattern):
 
-```
+```text
 ---
 globs: src/components/**/*.tsx
 alwaysApply: false

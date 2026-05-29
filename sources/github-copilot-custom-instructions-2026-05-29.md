@@ -26,7 +26,7 @@ For Copilot code review, the user's personal "use custom instructions" choice mu
 
 You can ask Copilot cloud agent (github.com/copilot/agents) to generate one. GitHub publishes this reusable onboarding prompt:
 
-```
+```text
 Your task is to "onboard" this repository to Copilot cloud agent by adding a
 .github/copilot-instructions.md file describing how a cloud agent seeing it for
 the first time can work most efficiently. Do this once per repository.
