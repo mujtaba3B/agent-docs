@@ -8,7 +8,7 @@ Schema for the `agent-docs` repo. Applies to every Claude Code session under `/U
 
 Mujtaba's personal best-practices reference for agent instruction files (CLAUDE.md, AGENTS.md, `.claude/rules/`, `.cursor/rules/`, Copilot custom instructions). `CURRENT.md` is the synthesis a session reads before any nontrivial agent-files change; `sources/` holds cached upstream snapshots; `skills/agent-files-architect/` is the audit skill, symlinked into `~/.claude/skills/`.
 
-Private repo. Local folder `~/dev/agent-docs/`; GitHub `mujtaba3B/agent-docs`.
+Public repo. Local folder `~/dev/agent-docs/`; GitHub `mujtaba3B/agent-docs`.
 
 ## Repo layout
 
@@ -28,7 +28,7 @@ Private repo. Local folder `~/dev/agent-docs/`; GitHub `mujtaba3B/agent-docs`.
 - **`CURRENT.md` is the product.** When upstream guidance shifts, re-fetch via `/browse`, add a date-stamped `sources/<vendor>-<topic>-YYYY-MM-DD.md`, revise `CURRENT.md`, and record why in `CHANGELOG.md` + `LOG.md`. Bump the "Last synthesized" date in `CURRENT.md`.
 - **`sources/` are point-in-time captures, not mirrors.** Trust the linked URL as source of truth. Strip page chrome; keep substantive content.
 - **Practice what this repo preaches.** Every CLAUDE.md here (this one, and any the skill recommends) stays under ~200 lines; use `<!-- -->` for human-only notes (stripped before context injection); reference, do not copy.
-- **The skill lives here now.** `skills/agent-files-architect/SKILL.md` is symlinked from `~/.claude/skills/agent-files-architect`. Its `description` frontmatter is load-bearing (the only text Claude sees to decide triggering); do not degrade it. This skill was moved out of the public `mutwo-skills` repo deliberately to make it private.
+- **The skill lives here now.** `skills/agent-files-architect/SKILL.md` is symlinked from `~/.claude/skills/agent-files-architect`. Its `description` frontmatter is load-bearing (the only text Claude sees to decide triggering); do not degrade it. This skill was moved out of `mutwo-skills` so the skill and the reference data it consults live together (co-location, not privacy: the repo is public).
 
 ## When to update LOG.md / INDEX.md
 
