@@ -1,6 +1,6 @@
 ---
 name: agent-files-architect
-description: Audit and selectively improve the user's first-class agent-loaded markdown files (CLAUDE.md, AGENTS.md, LOG.md, INDEX.md, MEMORY.md, plus any .md files referenced from a CLAUDE.md in the up-walk). Runs manually as a slash command and auto-fires inside `/close-out` when a TTL or activity trigger is hit. Produces a precedence graph, a stale-pointer scan, a context-weight report, a three-file gap list, and an INDEX.md link check; bundles only safe mechanical patches behind a single approval gate. Optional `--deep` mode walks downward from cwd. Optional `--research` flag fetches upstream guidance from Anthropic, OpenAI Codex, Cursor, Copilot, and agents.md to surface drift. Optional `--review` flag fires `/second-opinion panel`. Optional `--tier-discipline` flag adds a qualitative pass that catches decorative content, inline procedures that should be skills, and sections duplicating skill content. Trigger when the user says "/agent-files-architect", "architect the agent files", "audit agent files", "tidy CLAUDE.md", "refresh agent files", "check agent docs", or any variant of "are my CLAUDE.md / AGENTS.md / LOG.md / INDEX.md / MEMORY.md still in good shape". Voice triggers (speech-to-text aliases): "architect the agent files", "audit agent files", "tidy claude dot em dee", "refresh agent files", "check agent docs".
+description: Audit and selectively improve the user's first-class agent-loaded markdown files (CLAUDE.md, AGENTS.md, LOG.md, INDEX.md, MEMORY.md, plus any .md files referenced from a CLAUDE.md in the up-walk). Runs manually as a slash command and auto-fires inside `/close-out` when a TTL or activity trigger is hit. Produces a precedence graph, a stale-pointer scan, a context-weight report, a three-file gap list, a deploy-convention gap (DEPLOY.md + deploy scripts for repos that ship to a host), and an INDEX.md link check; bundles only safe mechanical patches behind a single approval gate. Carries the agent-files ontology (the canonical model of where each kind of agent knowledge lives). Optional `--deep` mode walks downward from cwd. Optional `--research` flag fetches upstream guidance from Anthropic, OpenAI Codex, Cursor, Copilot, and agents.md to surface drift. Optional `--review` flag fires `/second-opinion panel`. Optional `--tier-discipline` flag adds a qualitative pass that catches decorative content, inline procedures that should be skills, and sections duplicating skill content. Trigger when the user says "/agent-files-architect", "architect the agent files", "audit agent files", "tidy CLAUDE.md", "refresh agent files", "check agent docs", or any variant of "are my CLAUDE.md / AGENTS.md / LOG.md / INDEX.md / MEMORY.md still in good shape". Voice triggers (speech-to-text aliases): "architect the agent files", "audit agent files", "tidy claude dot em dee", "refresh agent files", "check agent docs".
 ---
 
 # Agent files architect
@@ -13,7 +13,49 @@ In scope:
 - Dynamic: any `.md` file referenced (by relative or absolute path) from a CLAUDE.md anywhere in the traversal. This is how `WIREFRAMES.md`, `STANDARD.md`, `TOOLING.md`, `DESIGN.md`, `PRINCIPLES.md`, etc. get pulled in without a hardcoded list.
 - Editor-specific: `.cursorrules`, `.cursor/rules/*`, `.github/copilot-instructions.md` when present.
 
-Out of scope (do not touch): `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `ARCHITECTURE.md`.
+Out of scope to *edit* (report-only, like a sibling spec): `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `ARCHITECTURE.md`, `DEPLOY.md`. These are human-facing or operational; the architect checks their *presence* (gap report, Step 4) and their *internal pointers* (stale-pointer scan, Step 3) but never rewrites their prose. `DEPLOY.md` and its sibling scripts (`scripts/deploy.sh`, `scripts/postdeploy-check.sh`) are owned by the deploy convention, not this skill.
+
+---
+
+## The agent-files ontology (the running model)
+
+The canonical map of where agent-relevant knowledge lives on this machine, why, and who maintains it. The architect uses it as the reference model for the precedence graph (Step 2), the gap report (Step 4), and the tier-discipline pass (Step 3.5). When a new kind of artifact earns a permanent home, add it here first. This section is the single source of truth for the model; `<agent-docs>/CURRENT.md` links here rather than restating it (one home per fact).
+
+### The homes
+
+| Artifact | Holds | Load timing | Git | Owner / maintainer |
+|---|---|---|---|---|
+| `~/.claude/CLAUDE.md` | Cross-machine hard rules + user preferences (collaboration, formatting) | Every session, everywhere | dotfiles (private) | human; architect audits |
+| `~/dev/CLAUDE.md` | Cross-project dev schema (three-file mandate, host/secret/DNS pointers) | Every session under `~/dev/` | tracked | human; architect audits |
+| `<repo>/CLAUDE.md` | Per-project AI conventions and rules | Project sessions | local-only (git-ignored) | human; architect audits |
+| `<repo>/LOG.md` | Chronological decision log (the *why*) | On demand / referenced | local-only | `/close-out` |
+| `<repo>/INDEX.md` | Content catalog (the *where*) | On demand / referenced | local-only | `/close-out` |
+| `<repo>/README.md` | Human-facing architecture + usage | Human + on demand | tracked | `/document-release` (architect: report-only) |
+| `<repo>/DEPLOY.md` | Deploy runbook: prereqs, rollback, *why* each step and check exists | Human + agent on deploy | tracked | deploy convention (architect: report-only) |
+| `<repo>/scripts/deploy.sh` | The deploy steps themselves (code-as-runbook) | Executed on deploy | tracked | deploy convention |
+| `<repo>/scripts/postdeploy-check.sh` | Post-deploy invariant assertions / smoke test (gate) | Executed after deploy | tracked | deploy convention |
+| `~/dev/where-things-run.json` (+ `WHERE-THINGS-RUN.md`) | Host/service inventory; bumped every deploy | On deploy / cross-host reasoning | tracked | every deploy |
+| `~/.claude/projects/<slug>/memory/` (`MEMORY.md` + `feedback_/project_/reference_/user_*`) | Relevance-gated persistent facts, decisions, feedback | Recalled by relevance | local | memory gate at `/close-out` |
+| `~/.claude/skills/<name>/SKILL.md` | On-demand procedures (3+ step how-tos with a trigger) | On invocation | tracked (in its repo) | skill author |
+| Sibling specs referenced from a CLAUDE.md (`WIREFRAMES.md`, `STANDARD.md`, `DESIGN.md`, ...) | Domain specs too big for CLAUDE.md | On demand / referenced | mixed | human |
+| Editor-specific (`.cursorrules`, `.cursor/rules/*`, `.github/copilot-instructions.md`) | Per-editor agent rules | That editor's sessions | tracked | human |
+
+### Routing rule: where does a new piece of knowledge go?
+
+- Imperative, needed every turn, fits in a few lines, with a concrete failure mode if absent → **CLAUDE.md hard rule** (tier by scope: machine / dev / project).
+- Applies in some contexts but not all, or is a per-project state / decision / feedback not yet proven load-bearing → **memory**.
+- A 3+ step how-to with a clear invocation trigger → **skill**.
+- Descriptive ("how it works"), not imperative → **README / sibling archive doc**.
+- A step you run to ship the service → **`scripts/deploy.sh`**.
+- An invariant that must hold after shipping (health, "exactly one backend serving traffic", an endpoint returns real output not a fallback) → **`scripts/postdeploy-check.sh`** (assert, non-zero exit on failure).
+- The prose around deploy (prereqs, secrets locations, rollback, *why* a check exists) → **`DEPLOY.md`**.
+- What runs on which host → **`where-things-run.json`** (+ narrative in `WHERE-THINGS-RUN.md`).
+
+### Principles
+
+- **One home per fact.** Co-mention across files is redundancy (or, if they disagree, a contradiction the precedence graph flags). Don't duplicate; point.
+- **Executable beats prose for anything verifiable.** A deploy step a script can run should be a script, not a checklist line; an invariant a probe can assert should live in `postdeploy-check.sh`, not a "remember to check" note. (Origin: the 2026-06-02 sms-hero dual-connector incident, where a stale second Cloudflare tunnel connector on the laptop silently served a keyless backend, so half of `/format` calls echoed the input back instead of voice-rewriting it; a `/format`-returns-`mode:llm` assertion in a post-deploy check would have caught it at deploy time.)
+- **Tracked vs local-only.** Human-facing and operational artifacts are git-tracked (README, DEPLOY.md, the deploy scripts, where-things-run.json). Agent scratch / working memory is local-only and git-ignored (CLAUDE.md, LOG.md, INDEX.md).
 
 ---
 
@@ -63,7 +105,7 @@ agent-files-architect plan:
 - ⏳ 2. Build precedence graph
 - ⏳ 3. Stale-pointer + context-weight + INDEX link check
 - ⏳ 3.5. (optional) --tier-discipline qualitative pass
-- ⏳ 4. Three-file gap report (advisory)
+- ⏳ 4. Three-file + deploy-convention gap report (advisory)
 - ⏳ 5. Bundle safe mechanical patches
 - ⏳ 6. Single approval gate
 - ⏳ 7. (optional) --research drift scan
@@ -237,7 +279,7 @@ Layer B is **one** LLM call over all flagged sections, with the evidence table a
 
 ---
 
-## Step 4: Three-file gap report (advisory)
+## Step 4: Three-file + deploy-convention gap report (advisory)
 
 For each repo (defined as any dir under `~/dev/` containing a `.git/` directory) discovered during traversal:
 
@@ -245,6 +287,18 @@ For each repo (defined as any dir under `~/dev/` containing a `.git/` directory)
 - If any are missing, classify the repo:
   - User-authored (matches the dev/ pattern, has commits authored by the user's git email, contains brand or domain text): "looks user-authored, recommend bootstrap".
   - Vendored or unowned (forked, contains "Generated by", or has `node_modules`-style markers): "looks vendored, suggest add `.agent-doctor-ignore`".
+
+### Deploy-convention gap (advisory)
+
+For each discovered repo that shows a **deploy signal**, also check for the deploy convention. Deploy signals (any one is enough): `wrangler.toml` (Cloudflare Worker), `Procfile` / `fly.toml` / `vercel.json` / `netlify.toml`, a `.plist` file or a `launchctl` / `ssh <host>` reference in `README.md` or `CLAUDE.md`, a `Dockerfile` with a push/registry target, or a `.github/workflows/*deploy*`.
+
+The deploy convention is three artifacts:
+
+- `DEPLOY.md` (runbook: prereqs, rollback, why each check exists),
+- `scripts/deploy.sh` (the steps, code-as-runbook),
+- `scripts/postdeploy-check.sh` (post-deploy invariant assertions; must include at least one health / behavioral check that fails loud, e.g. "the live endpoint returns real output, not a fallback").
+
+If a repo deploys but is missing any of the three, emit: "deploys (signal: `<X>`) but missing `<artifact(s)>`; recommend bootstrapping the deploy convention. See the `sms-hero` reference implementation as the template." Advisory only, exactly like the three-file gap.
 
 This section is advisory only. Never create placeholder files.
 
@@ -388,6 +442,7 @@ Findings (this run):
 - Sizes reported for 8 files (heaviest: ~/.claude/CLAUDE.md at 8.2 KB, top sections in context-weight.md).
 - 1 INDEX.md broken link.
 - 1 three-file gap: ~/dev/karpathy-skills/ missing INDEX.md (looks user-authored, recommend bootstrap).
+- 1 deploy-convention gap: ~/dev/email-summarizer/ deploys (signal: wrangler.toml) but has no DEPLOY.md or scripts/postdeploy-check.sh (recommend bootstrap; see sms-hero).
 - 4 safe patches bundled; 2 proposals not bundled (prose rewrites, see report).
 - Report: ~/.claude/agent-files-architect/latest/report.md
 ```
