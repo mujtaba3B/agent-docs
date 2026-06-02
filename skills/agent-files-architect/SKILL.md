@@ -13,7 +13,7 @@ In scope:
 - Dynamic: any `.md` file referenced (by relative or absolute path) from a CLAUDE.md anywhere in the traversal. This is how `WIREFRAMES.md`, `STANDARD.md`, `TOOLING.md`, `DESIGN.md`, `PRINCIPLES.md`, etc. get pulled in without a hardcoded list.
 - Editor-specific: `.cursorrules`, `.cursor/rules/*`, `.github/copilot-instructions.md` when present.
 
-Out of scope to *edit* (report-only, like a sibling spec): `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `ARCHITECTURE.md`, `DEPLOY.md`. These are human-facing or operational; the architect checks their *presence* (gap report, Step 4) and their *internal pointers* (stale-pointer scan, Step 3) but never rewrites their prose. `DEPLOY.md` and its sibling scripts (`scripts/deploy.sh`, `scripts/postdeploy-check.sh`) are owned by the deploy convention, not this skill.
+Out of scope to *edit* (report-only, like a sibling spec): `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `ARCHITECTURE.md`, `DEPLOY.md`. These are human-facing or operational; the architect checks their *presence* (gap report, Step 4) but never rewrites their prose, and never pulls them into the in-scope set the stale-pointer scan (Step 3) walks. `DEPLOY.md` and its sibling scripts (`scripts/deploy.sh`, `scripts/postdeploy-check.sh`) are owned by the deploy convention, not this skill.
 
 ---
 
