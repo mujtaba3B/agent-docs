@@ -29,7 +29,7 @@ The most actionable rules, ranked by impact for this user's Claude-first, multi-
 
 The canonical map of every agent-relevant artifact (which file holds what, git-tracked vs local-only, who maintains it, and the routing rule for where new knowledge goes) lives in the `agent-files-architect` skill, under "The agent-files ontology (the running model)": `skills/agent-files-architect/SKILL.md`. It is the single source of truth for the model; this page links there rather than restating it (one home per fact).
 
-As of 2026-06-02 the ontology includes the **deploy convention**: repos that ship to a host carry `DEPLOY.md` (runbook), `scripts/deploy.sh` (the steps), and `scripts/postdeploy-check.sh` (post-deploy invariant assertions that gate the deploy). The architect's gap report flags deployable repos missing any of the three. Reference implementation: `sms-hero`.
+As of 2026-06-03 the ontology includes the **deploy convention**: repos that ship to a host carry `DEPLOY.md` (runbook), `scripts/deploy.sh` (the steps), and `deploy.json` (declarative post-deploy invariants that gate the deploy). The checks are run by the central `~/dev/ops` kit via `devops check` (which replaced the earlier per-repo `scripts/postdeploy-check.sh`); `devops lad-config` generates a local-only `## Deploy Configuration` block in `CLAUDE.md` that `/land-and-deploy` reads. The architect's gap report flags deployable repos missing any of the three tracked artifacts. Reference implementation: `sms-hero`.
 
 ---
 
