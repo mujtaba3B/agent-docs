@@ -4,7 +4,7 @@ Mujtaba's personal best-practices reference for **agent instruction files** (CLA
 
 It exists so any future agent session consults one synthesized page (`CURRENT.md`) instead of re-running upstream research per project. When a session is about to do something nontrivial to an agent file (slim a CLAUDE.md, adopt `.claude/rules/`, write a first AGENTS.md, bootstrap a new repo), it reads `CURRENT.md` first.
 
-Private repo. Single-maintainer.
+Public repo. Single-maintainer.
 
 ## Layout
 

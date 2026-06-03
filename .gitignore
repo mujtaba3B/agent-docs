@@ -1,1 +1,8 @@
 .DS_Store
+
+# Agent-loaded convention files are maintained LOCALLY (per close-out), kept out
+# of git across all repos (they generated PR churn with no review value).
+# README.md stays tracked. See ~/dev/CLAUDE.md "three-file" rule.
+CLAUDE.md
+LOG.md
+INDEX.md
