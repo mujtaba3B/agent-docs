@@ -1,6 +1,6 @@
 ---
 name: agent-files-architect
-description: Audit and selectively improve the user's first-class agent-loaded markdown files (CLAUDE.md, AGENTS.md, LOG.md, INDEX.md, MEMORY.md, plus any .md files referenced from a CLAUDE.md in the up-walk). Runs manually as a slash command and auto-fires inside `/close-out` when a TTL or activity trigger is hit, or when the current git repo is missing a required agent file (CLAUDE.md / LOG.md / INDEX.md). Produces a precedence graph, a stale-pointer scan, a context-weight report, a three-file gap list, a deploy-convention gap (DEPLOY.md + deploy.json + deploy script for repos that ship to a host), and an INDEX.md link check; bundles only safe mechanical patches behind a single approval gate. Carries the agent-files ontology (the canonical model of where each kind of agent knowledge lives). Optional `--deep` mode walks downward from cwd. Optional `--research` flag fetches upstream guidance from Anthropic, OpenAI Codex, Cursor, Copilot, and agents.md to surface drift. Optional `--review` flag fires `/second-opinion panel`. Optional `--tier-discipline` flag adds a qualitative pass that catches decorative content, inline procedures that should be skills, and sections duplicating skill content. Trigger when the user says "/agent-files-architect", "architect the agent files", "audit agent files", "tidy CLAUDE.md", "refresh agent files", "check agent docs", or any variant of "are my CLAUDE.md / AGENTS.md / LOG.md / INDEX.md / MEMORY.md still in good shape". Voice triggers (speech-to-text aliases): "architect the agent files", "audit agent files", "tidy claude dot em dee", "refresh agent files", "check agent docs".
+description: Audit and selectively improve the user's first-class agent-loaded markdown files (CLAUDE.md, AGENTS.md, LOG.md, INDEX.md, MEMORY.md, plus any .md files referenced from a CLAUDE.md in the up-walk). Runs manually as a slash command and auto-fires inside `/close-out` when a TTL or activity trigger is hit, or when the current project folder (any git repo, or any folder under the ~/dev workspace) is missing a required agent file (CLAUDE.md / LOG.md / INDEX.md). Produces a precedence graph, a stale-pointer scan, a context-weight report, a three-file gap list, a deploy-convention gap (DEPLOY.md + deploy.json + deploy script for repos that ship to a host), and an INDEX.md link check; bundles only safe mechanical patches behind a single approval gate. Carries the agent-files ontology (the canonical model of where each kind of agent knowledge lives). Optional `--deep` mode walks downward from cwd. Optional `--research` flag fetches upstream guidance from Anthropic, OpenAI Codex, Cursor, Copilot, and agents.md to surface drift. Optional `--review` flag fires `/second-opinion panel`. Optional `--tier-discipline` flag adds a qualitative pass that catches decorative content, inline procedures that should be skills, and sections duplicating skill content. Trigger when the user says "/agent-files-architect", "architect the agent files", "audit agent files", "tidy CLAUDE.md", "refresh agent files", "check agent docs", or any variant of "are my CLAUDE.md / AGENTS.md / LOG.md / INDEX.md / MEMORY.md still in good shape". Voice triggers (speech-to-text aliases): "architect the agent files", "audit agent files", "tidy claude dot em dee", "refresh agent files", "check agent docs".
 ---
 
 # Agent files architect
@@ -483,13 +483,36 @@ T3=$([ "$T3" -ge 3 ] && echo 1 || echo 0)
 
 # Trigger 4: required-file gap (the "scan no matter what" structural check).
 # Evaluated on EVERY close-out regardless of T1-T3, but only FIRES for a dir
-# that is supposed to carry the files: the enclosing git repo. The ~/dev/
-# three-file mandate is per-repository (CLAUDE.md / LOG.md / INDEX.md at the
-# repo root), so scope the check to the repo root and stay silent in ~,
-# Downloads, and container dirs that do not require the files. Honors the same
-# .agent-doctor-ignore opt-out as deep mode. Firing only runs the existing
-# advisory gap report (Step 4); it NEVER bootstraps placeholder files.
-PROJECT_ROOT=$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null)
+# that is SUPPOSED to carry the three files. Resolve the project root to scan:
+#   - Inside the ~/dev/ workspace: prefer a NESTED git repo (toplevel strictly
+#     below ~/dev, e.g. ~/dev/agent-docs, ~/dev/businesses/unbound). If the only
+#     enclosing repo is ~/dev itself (the workspace root is a git repo, so a
+#     bare `git rev-parse` would swallow every child), fall back to the project
+#     dir = the immediate child of ~/dev. This is what catches a freshly-created,
+#     not-yet-`git init`-ed project folder under ~/dev.
+#   - Outside ~/dev: only a git repo qualifies; scan its toplevel.
+#   - Anywhere else (~, Downloads, /tmp, a non-~/dev non-repo dir): no project
+#     root, T4 stays 0, silent.
+# The ~/dev three-file mandate (CLAUDE.md / LOG.md / INDEX.md at the project
+# root) defines "supposed to carry the files". A bare container dir under ~/dev
+# (e.g. ~/dev/businesses) can false-positive here; drop a .agent-doctor-ignore
+# in it to silence. Honors that opt-out (same as deep mode). Firing only runs the
+# existing advisory gap report (Step 4); it NEVER bootstraps placeholder files.
+TL=$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null)
+PROJECT_ROOT=""
+case "$PWD" in
+  "$HOME/dev"|"$HOME/dev/"*)
+    if [ -n "$TL" ] && [ "$TL" != "$HOME/dev" ]; then
+      PROJECT_ROOT="$TL"
+    else
+      sub="${PWD#$HOME/dev}"; sub="${sub#/}"
+      if [ -n "$sub" ]; then PROJECT_ROOT="$HOME/dev/${sub%%/*}"; else PROJECT_ROOT="$HOME/dev"; fi
+    fi
+    ;;
+  *)
+    PROJECT_ROOT="$TL"
+    ;;
+esac
 T4=0
 if [ -n "$PROJECT_ROOT" ] && [ ! -e "$PROJECT_ROOT/.agent-doctor-ignore" ]; then
   for f in CLAUDE.md LOG.md INDEX.md; do
@@ -503,7 +526,7 @@ if [ "$T1$T2$T3$T4" = "0000" ]; then
 fi
 ```
 
-Trigger 4 is the cheap structural sanity check the user asked to run on every close-out. The presence test (three `test -e` calls against the repo root) runs unconditionally as part of evaluating the gate, so a repo missing its required agent files is always noticed. It only resolves to a fire (T4=1) when the enclosing git repo is genuinely missing one of `CLAUDE.md` / `LOG.md` / `INDEX.md`, which is why it stays silent at `~`, in `Downloads`, and in non-repo container dirs (no git repo, so `PROJECT_ROOT` is empty and T4 stays 0). When it does fire, the run is the same up-walk audit as any other trigger, and Step 4's advisory gap report is where the missing files surface; the skill still never creates placeholder files (anti-pattern 7). A non-git project folder that has not been `git init`-ed yet is covered separately by the `~/dev/CLAUDE.md` bootstrap protocol at session start, not by this trigger.
+Trigger 4 is the cheap structural sanity check the user asked to run on every close-out. The presence test (three `test -e` calls against the resolved project root) runs unconditionally as part of evaluating the gate, so a project folder missing its required agent files is always noticed. It resolves to a fire (T4=1) when that project folder is genuinely missing one of `CLAUDE.md` / `LOG.md` / `INDEX.md`. "Project folder" is deliberately broader than "git repo": any git repo qualifies, AND any folder under the `~/dev/` workspace qualifies even before `git init`, so a freshly-created `~/dev/newproj` is caught the same way an established repo is. It stays silent at `~`, in `Downloads`, in `/tmp`, and in any other non-`~/dev` folder that is not a git repo (`PROJECT_ROOT` is empty, T4 stays 0). When it fires, the run is the same up-walk audit as any other trigger, and Step 4's advisory gap report is where the missing files surface; the skill still never creates placeholder files (anti-pattern 7). The `~/dev/CLAUDE.md` bootstrap protocol at session start is the complementary prompt-to-create path; this trigger is the close-out-time detector.
 
 When fired from close-out: up-walk only (no `--deep`), no `--research`, no `--review`. Target whole-run budget under 2 seconds. Apply the single approval gate inline before close-out's final summary. If user declines the bundle, save the report and continue close-out.
 
@@ -521,7 +544,7 @@ The /second-opinion panel that vetted this skill flagged seven failure modes. Th
 2. **Touching human-facing docs.** README, CHANGELOG, CONTRIBUTING, ARCHITECTURE are out of scope. Those are owned by `/document-release` and `/end-sprint`. Mention them only to redirect.
 3. **Auto-firing the research step.** Background fetches of upstream docs become theater that decays into stale snapshots. `--research` is manual only.
 4. **Auto-firing `/second-opinion panel` on drift.** Guru-shopping at scale. `--review` is manual only.
-5. **Slowing down `/close-out`.** Mandatory triggers gate the close-out hook: 7 days, 10 sessions, 3 files touched, or a required-file gap in the current git repo. Target under 2 seconds when fired. The required-file gap check (Trigger 4) is three `test -e` calls, so the "scan no matter what" guarantee costs effectively nothing and does not threaten the budget.
+5. **Slowing down `/close-out`.** Mandatory triggers gate the close-out hook: 7 days, 10 sessions, 3 files touched, or a required-file gap in the current project folder (any git repo, or any folder under `~/dev`). Target under 2 seconds when fired. The required-file gap check (Trigger 4) is one `git rev-parse` plus three `test -e` calls, so the "scan no matter what" guarantee costs effectively nothing and does not threaten the budget.
 6. **Auto-managed sentinel comments.** No `<!-- agent-managed -->` markers anywhere. They rot, get accidentally deleted, get duplicated. Source-of-truth comparison via the precedence graph is the alternative.
 7. **Bootstrap hallucination.** The three-file gap report is advisory. Never create placeholder CLAUDE.md / LOG.md / INDEX.md files. The user's `/dev/CLAUDE.md` bootstrap protocol is owned by humans plus the reference implementation, not by this skill.
 8. **Tier-discipline as default-on.** The qualitative pass is opt-in via `--tier-discipline` and never fires under `--close-out`. The four failure modes guarded against: (a) thresholds dressed as verdicts (Layer A emits evidence, not labels), (b) per-section LLM calls blowing latency (Layer B is one batched call), (c) "looks bloated" findings with no redirect target (suppressed), (d) fake-precision token-savings estimates (replaced with raw byte counts from Layer A).
