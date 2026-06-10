@@ -1,6 +1,6 @@
 ---
 name: agent-files-architect
-description: Audit and selectively improve the user's first-class agent-loaded markdown files (CLAUDE.md, AGENTS.md, LOG.md, INDEX.md, MEMORY.md, plus any .md files referenced from a CLAUDE.md in the up-walk). Runs manually as a slash command and auto-fires inside `/close-out` when a TTL or activity trigger is hit, or when the current project folder (any git repo, or any folder under the ~/dev workspace) is missing a required agent file (CLAUDE.md / LOG.md / INDEX.md). Produces a precedence graph, a stale-pointer scan, a context-weight report, a three-file gap list, a deploy-convention gap (DEPLOY.md + deploy.json + deploy script for repos that ship to a host), and an INDEX.md link check; bundles only safe mechanical patches behind a single approval gate. Carries the agent-files ontology (the canonical model of where each kind of agent knowledge lives). Optional `--deep` mode walks downward from cwd. Optional `--research` flag fetches upstream guidance from Anthropic, OpenAI Codex, Cursor, Copilot, and agents.md to surface drift. Optional `--review` flag fires `/second-opinion panel`. Optional `--tier-discipline` flag adds a qualitative pass that catches decorative content, inline procedures that should be skills, and sections duplicating skill content. Trigger when the user says "/agent-files-architect", "architect the agent files", "audit agent files", "tidy CLAUDE.md", "refresh agent files", "check agent docs", or any variant of "are my CLAUDE.md / AGENTS.md / LOG.md / INDEX.md / MEMORY.md still in good shape". Voice triggers (speech-to-text aliases): "architect the agent files", "audit agent files", "tidy claude dot em dee", "refresh agent files", "check agent docs".
+description: Audit and selectively improve the user's first-class agent-loaded markdown files (CLAUDE.md, AGENTS.md, LOG.md, INDEX.md, MEMORY.md, plus any .md files referenced from a CLAUDE.md in the up-walk). Runs manually as a slash command and auto-fires inside `/close-out` when a TTL or activity trigger is hit, or when the current project folder (any git repo, or any folder under the ~/dev workspace) is missing a required agent file (CLAUDE.md / LOG.md / INDEX.md / PLAYBOOK.md). Produces a precedence graph, a stale-pointer scan, a context-weight report, a four-file gap list, a candidate-skills list harvested from the prose plays in every PLAYBOOK.md, a deploy-convention gap (DEPLOY.md + deploy.json + deploy script for repos that ship to a host), and an INDEX.md link check; bundles only safe mechanical patches behind a single approval gate. Carries the agent-files ontology (the canonical model of where each kind of agent knowledge lives). Optional `--deep` mode walks downward from cwd. Optional `--research` flag fetches upstream guidance from Anthropic, OpenAI Codex, Cursor, Copilot, and agents.md to surface drift. Optional `--review` flag fires `/second-opinion panel`. Optional `--tier-discipline` flag adds a qualitative pass that catches decorative content, inline procedures that should be skills, and sections duplicating skill content. Trigger when the user says "/agent-files-architect", "architect the agent files", "audit agent files", "tidy CLAUDE.md", "refresh agent files", "check agent docs", or any variant of "are my CLAUDE.md / AGENTS.md / LOG.md / INDEX.md / MEMORY.md still in good shape". Voice triggers (speech-to-text aliases): "architect the agent files", "audit agent files", "tidy claude dot em dee", "refresh agent files", "check agent docs".
 ---
 
 # Agent files architect
@@ -9,7 +9,7 @@ Audits and selectively improves the markdown files that AI coding agents read on
 
 In scope:
 
-- Core: `CLAUDE.md`, `AGENTS.md`, `LOG.md`, `INDEX.md`, `MEMORY.md`.
+- Core: `CLAUDE.md`, `AGENTS.md`, `LOG.md`, `INDEX.md`, `MEMORY.md`, `PLAYBOOK.md`.
 - Dynamic: any `.md` file referenced (by relative or absolute path) from a CLAUDE.md anywhere in the traversal. This is how `WIREFRAMES.md`, `STANDARD.md`, `TOOLING.md`, `DESIGN.md`, `PRINCIPLES.md`, etc. get pulled in without a hardcoded list.
 - Editor-specific: `.cursorrules`, `.cursor/rules/*`, `.github/copilot-instructions.md` when present.
 
@@ -26,10 +26,11 @@ The canonical map of where agent-relevant knowledge lives on this machine, why, 
 | Artifact | Holds | Load timing | Git | Owner / maintainer |
 |---|---|---|---|---|
 | `~/.claude/CLAUDE.md` | Cross-machine hard rules + user preferences (collaboration, formatting) | Every session, everywhere | dotfiles (private) | human; architect audits |
-| `~/dev/CLAUDE.md` | Cross-project dev schema (three-file mandate, host/secret/DNS pointers) | Every session under `~/dev/` | tracked | human; architect audits |
+| `~/dev/CLAUDE.md` | Cross-project dev schema (four-file mandate, host/secret/DNS pointers) | Every session under `~/dev/` | tracked | human; architect audits |
 | `<repo>/CLAUDE.md` | Per-project AI conventions and rules | Project sessions | local-only (git-ignored) | human; architect audits |
 | `<repo>/LOG.md` | Chronological decision log (the *why*) | On demand / referenced | local-only | `/close-out` |
 | `<repo>/INDEX.md` | Content catalog (the *where*) | On demand / referenced | local-only | `/close-out` |
+| `<repo>/PLAYBOOK.md` | The repeatable plays we run here (prose plays + skill pointers); the prose plays are the systematize-next backlog | On demand / referenced (CLAUDE.md carries a one-line pointer) | **tracked** (the one agent-maintained file that is tracked, unlike LOG/INDEX: it is a durable, reviewable process narrative and build backlog that must survive a fresh clone) | `/close-out` playbook harvest + human |
 | `<repo>/README.md` | Human-facing architecture + usage | Human + on demand | tracked | `/document-release` (architect: report-only) |
 | `<repo>/DEPLOY.md` | Deploy runbook: prereqs, rollback, *why* each step and check exists | Human + agent on deploy | tracked | deploy convention (architect: report-only) |
 | `<repo>/scripts/deploy.sh` | The deploy steps themselves (code-as-runbook); runs the real deploy then `devops check` | Executed on deploy | tracked | deploy convention |
@@ -46,6 +47,7 @@ The canonical map of where agent-relevant knowledge lives on this machine, why, 
 - Imperative, needed every turn, fits in a few lines, with a concrete failure mode if absent → **CLAUDE.md hard rule** (tier by scope: machine / dev / project).
 - Applies in some contexts but not all, or is a per-project state / decision / feedback not yet proven load-bearing → **memory**.
 - A 3+ step how-to with a clear invocation trigger → **skill**.
+- A repeatable process we run (a play) → **PLAYBOOK.md as prose**; once it recurs and proves out, systematize it as a skill and repoint the play at that skill (keep the judgment, do not copy the skill's steps). The prose plays are the backlog of what to build next.
 - Descriptive ("how it works"), not imperative → **README / sibling archive doc**.
 - A step you run to ship the service → **`scripts/deploy.sh`**.
 - An invariant that must hold after shipping (health, "exactly one backend serving traffic", an endpoint returns real output not a fallback) → **a check in `deploy.json`** (declarative HTTP/hook assertion, run by `devops check`; the kit fails non-zero on any miss).
@@ -56,7 +58,7 @@ The canonical map of where agent-relevant knowledge lives on this machine, why, 
 
 - **One home per fact.** Co-mention across files is redundancy (or, if they disagree, a contradiction the precedence graph flags). Don't duplicate; point.
 - **Executable beats prose for anything verifiable.** A deploy step a script can run should be a script, not a checklist line; an invariant a probe can assert should be a check in `deploy.json` (run by `devops check`), not a "remember to check" note. (Origin: the 2026-06-02 sms-hero dual-connector incident, where a stale second Cloudflare tunnel connector on the laptop silently served a keyless backend, so half of `/format` calls echoed the input back instead of voice-rewriting it; a `/format`-returns-`mode:llm` assertion in a post-deploy check would have caught it at deploy time. That check now lives in `sms-hero/deploy.json`.)
-- **Tracked vs local-only.** Human-facing and operational artifacts are git-tracked (README, DEPLOY.md, `scripts/deploy.sh`, `deploy.json`, where-things-run.json). Agent scratch / working memory is local-only and git-ignored (CLAUDE.md, LOG.md, INDEX.md), including the generated `## Deploy Configuration` block inside CLAUDE.md.
+- **Tracked vs local-only.** Human-facing and operational artifacts are git-tracked (README, DEPLOY.md, `scripts/deploy.sh`, `deploy.json`, where-things-run.json). Agent scratch / working memory is local-only and git-ignored (CLAUDE.md, LOG.md, INDEX.md), including the generated `## Deploy Configuration` block inside CLAUDE.md. **The deliberate exception is `PLAYBOOK.md`: it is agent-maintained (the `/close-out` playbook harvest appends to it) yet git-tracked, because it is a durable, human-readable process narrative and a reviewable build backlog, not scratch. Its whole purpose is to survive a fresh clone, so never add it to a gitignore.**
 
 ---
 
@@ -81,7 +83,7 @@ The menu is a single-select. `AskUserQuestion` caps options at 4, so the menu of
 
 | Option label | Description | Flag set |
 |---|---|---|
-| Standard audit (recommended) | Up-walk only. Precedence graph, stale pointers, size report, three-file gap, INDEX link check. Fast. | (none) |
+| Standard audit (recommended) | Up-walk only. Precedence graph, stale pointers, size report, four-file gap, candidate-skills list, INDEX link check. Fast. | (none) |
 | Standard + tier-discipline | Adds a qualitative pass over each CLAUDE.md section: per-section evidence features plus one batched LLM judgment call that flags decorative content, inline procedures that should be skills, and sections duplicating skill content. Advisory only. | `--tier-discipline` |
 | Standard + research drift | Compares the user's files against the cached `agent-docs` guidance (`CURRENT.md` + `sources/`), re-fetching upstream via `/browse` only when a snapshot is stale or missing, and surfaces drift. | `--research` |
 | Standard + expert panel | Adds a `/second-opinion panel` review of the audit output. | `--review` |
@@ -106,7 +108,7 @@ agent-files-architect plan:
 - ⏳ 2. Build precedence graph
 - ⏳ 3. Stale-pointer + context-weight + INDEX link check
 - ⏳ 3.5. (optional) --tier-discipline qualitative pass
-- ⏳ 4. Three-file + deploy-convention gap report (advisory)
+- ⏳ 4. Four-file + deploy-convention gap report + candidate-skills harvest (advisory)
 - ⏳ 5. Bundle safe mechanical patches
 - ⏳ 6. Single approval gate
 - ⏳ 7. (optional) --research drift scan
@@ -125,7 +127,7 @@ When called from `/close-out` (i.e., `--close-out` passed), the menu is bypassed
 Walk from cwd up to `$HOME`. At each level, look for:
 
 ```text
-CLAUDE.md, AGENTS.md, LOG.md, INDEX.md, MEMORY.md,
+CLAUDE.md, AGENTS.md, LOG.md, INDEX.md, MEMORY.md, PLAYBOOK.md,
 .cursorrules, .cursor/rules, .github/copilot-instructions.md
 ```
 
@@ -151,7 +153,7 @@ Walk DOWN from cwd, depth cap 4. Skip:
 
 Content-heuristic to decide if a CLAUDE.md found via deep mode looks user-authored:
 
-- Mentions the user's name, a three-file (`CLAUDE.md` / `LOG.md` / `INDEX.md`) convention, project-specific brand or domain terms, or matches a workspace layout the user maintains: user-authored, include.
+- Mentions the user's name, a four-file (`CLAUDE.md` / `LOG.md` / `INDEX.md` / `PLAYBOOK.md`) convention, project-specific brand or domain terms, or matches a workspace layout the user maintains: user-authored, include.
 - Contains "Generated by", "Auto-generated", "Do not edit", or is a copy of a template under `node_modules`-adjacent paths: vendored, skip and recommend adding `.agent-doctor-ignore`.
 
 ### One parallel discovery batch
@@ -164,7 +166,7 @@ Run discovery in a single parallel bash invocation: one `find` for the up-walk f
 
 For every rule topic that appears in two or more in-scope files, render a graph node.
 
-Topic detection: scan each file for headers (h1, h2, h3) and lead sentences of paragraphs. Cluster topics by keyword overlap (em-dash rule, gstack usage, design tool preference, three-file mandate, karpathy gist check, question-and-answer loop, etc.). Imperfect clustering is fine; v1 favors visibility over precision.
+Topic detection: scan each file for headers (h1, h2, h3) and lead sentences of paragraphs. Cluster topics by keyword overlap (em-dash rule, gstack usage, design tool preference, four-file mandate, karpathy gist check, question-and-answer loop, etc.). Imperfect clustering is fine; v1 favors visibility over precision.
 
 Authoritative-wins hierarchy (highest first):
 
@@ -280,14 +282,15 @@ Layer B is **one** LLM call over all flagged sections, with the evidence table a
 
 ---
 
-## Step 4: Three-file + deploy-convention gap report (advisory)
+## Step 4: Four-file + deploy-convention gap report + candidate-skills harvest (advisory)
 
 For each repo (defined as any dir under `~/dev/` containing a `.git/` directory) discovered during traversal:
 
-- Check for presence of `CLAUDE.md`, `LOG.md`, `INDEX.md`.
+- Check for presence of `CLAUDE.md`, `LOG.md`, `INDEX.md`, `PLAYBOOK.md`.
 - If any are missing, classify the repo:
   - User-authored (matches the dev/ pattern, has commits authored by the user's git email, contains brand or domain text): "looks user-authored, recommend bootstrap".
   - Vendored or unowned (forked, contains "Generated by", or has `node_modules`-style markers): "looks vendored, suggest add `.agent-doctor-ignore`".
+- Note the tracking asymmetry when reporting a `PLAYBOOK.md` gap: `CLAUDE.md` / `LOG.md` / `INDEX.md` are local-only, but `PLAYBOOK.md` is git-tracked, so on a fresh clone it is the only one of the four that *should* already be present. A missing `PLAYBOOK.md` means the repo never started recording its plays; reference `~/dev/businesses/dxangels/PLAYBOOK.md` as the format template (the way the deploy gap points at `sms-hero`). Advisory only, NEVER auto-create (anti-pattern 7 still holds).
 
 ### Deploy-convention gap (advisory)
 
@@ -299,9 +302,17 @@ The deploy convention is three tracked artifacts (the post-deploy checks are dec
 - `scripts/deploy.sh` (the steps, code-as-runbook; ends by running `devops check`),
 - `deploy.json` (declarative post-deploy invariants; must include at least one health / behavioral check that fails loud, e.g. "the live endpoint returns real output, not a fallback"). Validate it with `devops validate`.
 
-If a repo deploys but is missing any of the three, emit: "deploys (signal: `<X>`) but missing `<artifact(s)>`; recommend bootstrapping the deploy convention. See the `sms-hero` reference implementation as the template." Advisory only, exactly like the three-file gap. (The `## Deploy Configuration` block in `CLAUDE.md` is generated from `deploy.json` by `devops lad-config`, so do not flag it as a separate gap; if absent, the fix is to run that command, not to author it.)
+If a repo deploys but is missing any of the three, emit: "deploys (signal: `<X>`) but missing `<artifact(s)>`; recommend bootstrapping the deploy convention. See the `sms-hero` reference implementation as the template." Advisory only, exactly like the four-file gap. (The `## Deploy Configuration` block in `CLAUDE.md` is generated from `deploy.json` by `devops lad-config`, so do not flag it as a separate gap; if absent, the fix is to run that command, not to author it.)
 
 This section is advisory only. Never create placeholder files.
+
+### Candidate-skills harvest (advisory)
+
+This is the recommendation engine for what to systematize next. For every `PLAYBOOK.md` discovered in the traversal, parse its play entries (each `### Play: <name>` block with its `Status:` line) and collect every play whose status is `prose` (i.e. `prose (candidate skill)`, not `skill: <name>` and not `external: <tool>`). A prose play is a repeatable process the user runs by hand that has not yet graduated into a skill, so it is by definition a candidate to build.
+
+Aggregate these across every PLAYBOOK.md into a single cross-repo **"plays to systematize (candidate skills)"** list. For each entry record: the play name, its source repo + PLAYBOOK.md path, the one-line "what / when", and the "notes" judgment (so the build later keeps the why). Render it into `candidate-skills.md` and surface it as a "Plays to systematize (candidate skills)" section in `report.md`.
+
+Advisory only: the architect does not build skills, it only surfaces the backlog. It is also blind to recency or count, so it does not decide a play is "ready" to graduate; that judgment stays with the human and with `/close-out`'s per-session playbook harvest. The division of labor: `/close-out` captures plays into each repo's PLAYBOOK.md one session at a time; this step is the cross-repo aggregation view over all of them. Where a single durable aggregated backlog should physically live (an ephemeral section in this report vs a tracked top-level `~/dev/PLAYS-TO-SYSTEMATIZE.md`) is an open question for the human; until decided, the list lives only in the architect's run artifacts (`candidate-skills.md`).
 
 ---
 
@@ -393,7 +404,7 @@ Compose a self-contained prompt from the audit findings:
 
 - Subject: "Review the audit output produced by /agent-files-architect for this user's CLAUDE.md / AGENTS.md / LOG.md / INDEX.md / MEMORY.md setup."
 - Persona: "developer-experience lead designing meta-tools for AI coding agents."
-- Constraints in play: the user's three-file mandate, the em-dash ban, the gstack `/browse` rule, the manual-only stance on auto-firing research and panels.
+- Constraints in play: the user's four-file mandate, the em-dash ban, the gstack `/browse` rule, the manual-only stance on auto-firing research and panels.
 - Attach the report inline.
 
 Fire `/second-opinion panel`. Save the panel output alongside the audit artifacts and link from `report.md`.
@@ -413,6 +424,7 @@ Output layout (all under `~/.claude/agent-files-architect/`):
     precedence.md
     context-weight.md
     proposed-patches.diff
+    candidate-skills.md          (only if a PLAYBOOK.md with prose plays was found)
     tier-audit.md                (only if --tier-discipline)
     research.md                  (only if --research)
     panel/                       (only if --review; mirrors /second-opinion output dir)
@@ -442,7 +454,8 @@ Findings (this run):
 - 2 stale pointers: ~/dev/businesses/unbound/INDEX.md links to spec/wireframes.pen (moved to spec/wires.pen).
 - Sizes reported for 8 files (heaviest: ~/.claude/CLAUDE.md at 8.2 KB, top sections in context-weight.md).
 - 1 INDEX.md broken link.
-- 1 three-file gap: ~/dev/karpathy-skills/ missing INDEX.md (looks user-authored, recommend bootstrap).
+- 1 four-file gap: ~/dev/karpathy-skills/ missing INDEX.md (looks user-authored, recommend bootstrap).
+- 5 candidate skills harvested from 2 PLAYBOOK.md files (prose plays to systematize; see candidate-skills.md).
 - 1 deploy-convention gap: ~/dev/some-worker/ deploys (signal: wrangler.toml) but has no DEPLOY.md or deploy.json (recommend bootstrap; see sms-hero).
 - 4 safe patches bundled; 2 proposals not bundled (prose rewrites, see report).
 - Report: ~/.claude/agent-files-architect/latest/report.md
@@ -483,7 +496,7 @@ T3=$([ "$T3" -ge 3 ] && echo 1 || echo 0)
 
 # Trigger 4: required-file gap (the "scan no matter what" structural check).
 # Evaluated on EVERY close-out regardless of T1-T3, but only FIRES for a dir
-# that is SUPPOSED to carry the three files. Resolve the project root to scan:
+# that is SUPPOSED to carry the four files. Resolve the project root to scan:
 #   - Inside the ~/dev/ workspace: prefer a NESTED git repo (toplevel strictly
 #     below ~/dev, e.g. ~/dev/agent-docs, ~/dev/businesses/unbound). If the only
 #     enclosing repo is ~/dev itself (the workspace root is a git repo, so a
@@ -493,7 +506,7 @@ T3=$([ "$T3" -ge 3 ] && echo 1 || echo 0)
 #   - Outside ~/dev: only a git repo qualifies; scan its toplevel.
 #   - Anywhere else (~, Downloads, /tmp, a non-~/dev non-repo dir): no project
 #     root, T4 stays 0, silent.
-# The ~/dev three-file mandate (CLAUDE.md / LOG.md / INDEX.md at the project
+# The ~/dev four-file mandate (CLAUDE.md / LOG.md / INDEX.md / PLAYBOOK.md at the project
 # root) defines "supposed to carry the files". A bare container dir under ~/dev
 # (e.g. ~/dev/businesses) can false-positive here; drop a .agent-doctor-ignore
 # in it to silence. Honors that opt-out (same as deep mode). Firing only runs the
@@ -515,7 +528,7 @@ case "$PWD" in
 esac
 T4=0
 if [ -n "$PROJECT_ROOT" ] && [ ! -e "$PROJECT_ROOT/.agent-doctor-ignore" ]; then
-  for f in CLAUDE.md LOG.md INDEX.md; do
+  for f in CLAUDE.md LOG.md INDEX.md PLAYBOOK.md; do
     [ -e "$PROJECT_ROOT/$f" ] || T4=1
   done
 fi
@@ -526,7 +539,7 @@ if [ "$T1$T2$T3$T4" = "0000" ]; then
 fi
 ```
 
-Trigger 4 is the cheap structural sanity check the user asked to run on every close-out. The presence test (three `test -e` calls against the resolved project root) runs unconditionally as part of evaluating the gate, so a project folder missing its required agent files is always noticed. It resolves to a fire (T4=1) when that project folder is genuinely missing one of `CLAUDE.md` / `LOG.md` / `INDEX.md`. "Project folder" is deliberately broader than "git repo": any git repo qualifies, AND any folder under the `~/dev/` workspace qualifies even before `git init`, so a freshly-created `~/dev/newproj` is caught the same way an established repo is. It stays silent at `~`, in `Downloads`, in `/tmp`, and in any other non-`~/dev` folder that is not a git repo (`PROJECT_ROOT` is empty, T4 stays 0). When it fires, the run is the same up-walk audit as any other trigger, and Step 4's advisory gap report is where the missing files surface; the skill still never creates placeholder files (anti-pattern 7). The `~/dev/CLAUDE.md` bootstrap protocol at session start is the complementary prompt-to-create path; this trigger is the close-out-time detector.
+Trigger 4 is the cheap structural sanity check the user asked to run on every close-out. The presence test (four `test -e` calls against the resolved project root) runs unconditionally as part of evaluating the gate, so a project folder missing its required agent files is always noticed. It resolves to a fire (T4=1) when that project folder is genuinely missing one of `CLAUDE.md` / `LOG.md` / `INDEX.md` / `PLAYBOOK.md`. "Project folder" is deliberately broader than "git repo": any git repo qualifies, AND any folder under the `~/dev/` workspace qualifies even before `git init`, so a freshly-created `~/dev/newproj` is caught the same way an established repo is. It stays silent at `~`, in `Downloads`, in `/tmp`, and in any other non-`~/dev` folder that is not a git repo (`PROJECT_ROOT` is empty, T4 stays 0). When it fires, the run is the same up-walk audit as any other trigger, and Step 4's advisory gap report is where the missing files surface; the skill still never creates placeholder files (anti-pattern 7). The `~/dev/CLAUDE.md` bootstrap protocol at session start is the complementary prompt-to-create path; this trigger is the close-out-time detector.
 
 When fired from close-out: up-walk only (no `--deep`), no `--research`, no `--review`. Target whole-run budget under 2 seconds. Apply the single approval gate inline before close-out's final summary. If user declines the bundle, save the report and continue close-out.
 
@@ -544,9 +557,9 @@ The /second-opinion panel that vetted this skill flagged seven failure modes. Th
 2. **Touching human-facing docs.** README, CHANGELOG, CONTRIBUTING, ARCHITECTURE are out of scope. Those are owned by `/document-release` and `/end-sprint`. Mention them only to redirect.
 3. **Auto-firing the research step.** Background fetches of upstream docs become theater that decays into stale snapshots. `--research` is manual only.
 4. **Auto-firing `/second-opinion panel` on drift.** Guru-shopping at scale. `--review` is manual only.
-5. **Slowing down `/close-out`.** Mandatory triggers gate the close-out hook: 7 days, 10 sessions, 3 files touched, or a required-file gap in the current project folder (any git repo, or any folder under `~/dev`). Target under 2 seconds when fired. The required-file gap check (Trigger 4) is one `git rev-parse` plus three `test -e` calls, so the "scan no matter what" guarantee costs effectively nothing and does not threaten the budget.
+5. **Slowing down `/close-out`.** Mandatory triggers gate the close-out hook: 7 days, 10 sessions, 3 files touched, or a required-file gap in the current project folder (any git repo, or any folder under `~/dev`). Target under 2 seconds when fired. The required-file gap check (Trigger 4) is one `git rev-parse` plus four `test -e` calls, so the "scan no matter what" guarantee costs effectively nothing and does not threaten the budget.
 6. **Auto-managed sentinel comments.** No `<!-- agent-managed -->` markers anywhere. They rot, get accidentally deleted, get duplicated. Source-of-truth comparison via the precedence graph is the alternative.
-7. **Bootstrap hallucination.** The three-file gap report is advisory. Never create placeholder CLAUDE.md / LOG.md / INDEX.md files. The user's `/dev/CLAUDE.md` bootstrap protocol is owned by humans plus the reference implementation, not by this skill.
+7. **Bootstrap hallucination.** The four-file gap report is advisory. Never create placeholder CLAUDE.md / LOG.md / INDEX.md / PLAYBOOK.md files (PLAYBOOK.md being git-tracked does not change this; a missing one is surfaced, never auto-written). The user's `/dev/CLAUDE.md` bootstrap protocol is owned by humans plus the reference implementation, not by this skill.
 8. **Tier-discipline as default-on.** The qualitative pass is opt-in via `--tier-discipline` and never fires under `--close-out`. The four failure modes guarded against: (a) thresholds dressed as verdicts (Layer A emits evidence, not labels), (b) per-section LLM calls blowing latency (Layer B is one batched call), (c) "looks bloated" findings with no redirect target (suppressed), (d) fake-precision token-savings estimates (replaced with raw byte counts from Layer A).
 
 Additional rules:
