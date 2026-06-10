@@ -15,7 +15,8 @@ Public repo. Single-maintainer.
 | `skills/agent-files-architect/` | The skill that audits a real CLAUDE.md / AGENTS.md / LOG.md / INDEX.md / MEMORY.md tree against the guidance in `CURRENT.md`. Symlinked into `~/.claude/skills/`. |
 | `install.sh` | Symlinks the skill(s) under `skills/` into `~/.claude/skills/`. Run after cloning on a new machine. |
 | `CHANGELOG.md` | Why each revision of `CURRENT.md` happened. |
-| `CLAUDE.md` / `LOG.md` / `INDEX.md` | The `~/dev/` three-file schema, applied to this repo (it eats its own dog food). |
+| `PLAYBOOK.md` | The repeatable plays this repo runs (refresh the synthesis, audit a tree, propagate the skill, ship through the gates); prose plays are the systematize-next backlog. Tracked, unlike its local-only siblings. |
+| `CLAUDE.md` / `LOG.md` / `INDEX.md` / `PLAYBOOK.md` | The `~/dev/` four-file schema, applied to this repo (it eats its own dog food). The first three are local-only; `PLAYBOOK.md` is tracked. |
 
 ## Workflow
 
