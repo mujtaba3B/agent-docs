@@ -2,6 +2,10 @@
 
 Why each revision of `CURRENT.md` (and the repo) happened. Newest first.
 
+## 2026-06-10 - Resolve where the cross-repo candidate-skills backlog lives
+
+Closed the open question flagged in the 2026-06-09 entry. The PLAYBOOK.md files are the single source of truth for the plays-to-systematize backlog: the prose plays inside each repo's PLAYBOOK.md *are* that repo's list. The architect's cross-repo aggregate is a **derived view, recomputed from the PLAYBOOK.md files on each run** (into `candidate-skills.md`), not a separate stored copy. We deliberately do NOT create a tracked top-level `~/dev/PLAYS-TO-SYSTEMATIZE.md`: it would duplicate facts that already live in the PLAYBOOK.md files and drift, violating one-home-per-fact. Updated the Step 4 candidate-skills harvest text in `skills/agent-files-architect/SKILL.md` accordingly.
+
 ## 2026-06-09 - PLAYBOOK.md becomes a first-class agent file
 
 Made `PLAYBOOK.md` a fourth first-class per-repo agent file in the ontology, the convention, and the architect machinery. A `PLAYBOOK.md` is the canonical, human-readable record of a repo's repeatable **plays**: a play is born as prose and graduates into a skill once it recurs and proves out, at which point the entry keeps the judgment and points at the skill for the mechanics. The prose plays are the backlog of what to systematize next. Unlike its siblings `LOG.md` / `INDEX.md` (git-ignored agent scratch), `PLAYBOOK.md` is deliberately **git-tracked**: its purpose is a durable, reviewable process narrative and build backlog that must survive a fresh clone. It loads on demand (CLAUDE.md carries a one-line pointer), not every session. Design vetted by a 4-model `/second-opinion` panel plus a run of the architect itself. Reference implementation: `~/dev/businesses/dxangels/PLAYBOOK.md`.
